@@ -42,14 +42,18 @@ async function compareUserPW(req, res, next) {
   // You'll need to find the user in your DB
   // Once you have the user, you'll need to pass the encrypted pw and the plaintext pw to the compare function
   // If the passwords match set the username on `req` ==> req.username = user.username; and call next();
-  const result = await User.findOne({username});
-  bcrypt.compare(password,result.password, (err,response) =>{
-    if (!response) {
-      res.status(400).json({error: 'User error'})
-    }
-    req.username = result.username;
-    next();
-  })
+  try {
+    const result = await User.findOne({username});
+    bcrypt.compare(password,result.password, (err,response) =>{
+      if (!response) {
+        res.status(400).json({error: 'User error'})
+      }
+      req.username = result.username;
+      next();
+    })
+  } catch (error){
+    res.status(400).json({error: 'Username Incorrect'})
+  }
 };
 
 module.exports = {
