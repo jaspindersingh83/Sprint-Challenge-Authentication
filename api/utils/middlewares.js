@@ -26,15 +26,30 @@ const encryptUserPW = (req, res, next) => {
   // TODO: Fill this middleware in with the Proper password encrypting, bcrypt.hash()
   // Once the password is encrypted using bcrypt you'll need to set a user obj on req.user with the encrypted PW
   // Once the user is set, call next and head back into the userController to save it to the DB
+  if(!password){
+    res.status(400).json({error:'Password Invalid'})
+  }
+  bcrypt.hash(password,SaltRounds,(err,hash) =>{
+    req.user = hash;
+    next();
+  })
 };
 
-const compareUserPW = (req, res, next) => {
+async function compareUserPW(req, res, next) {
   const { username, password } = req.body;
   // https://github.com/kelektiv/node.bcrypt.js#usage
   // TODO: Fill this middleware in with the Proper password comparing, bcrypt.compare()
   // You'll need to find the user in your DB
   // Once you have the user, you'll need to pass the encrypted pw and the plaintext pw to the compare function
   // If the passwords match set the username on `req` ==> req.username = user.username; and call next();
+  const result = await User.findOne({username});
+  bcrypt.compare(password,result.password, (err,response) =>{
+    if (!response) {
+      res.status(400).json({error: 'User error'})
+    }
+    req.username = result.username;
+    next();
+  })
 };
 
 module.exports = {
